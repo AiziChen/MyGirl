@@ -9,7 +9,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
@@ -17,8 +16,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
@@ -28,6 +25,8 @@ import org.pub.girlview.domain.Item;
 import org.pub.girlview.scanner.ShowScanner;
 
 import java.util.List;
+
+import uk.co.senab.photoview.PhotoView;
 
 public class AlbumActivity extends AppCompatActivity {
 
@@ -159,7 +158,7 @@ public class AlbumActivity extends AppCompatActivity {
                                  Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_album, container, false);
             String src = getArguments().getString(ARG_SECTION_ITEM);
-            ImageView albumImage = rootView.findViewById(R.id.albumImage);
+            PhotoView albumImage = rootView.findViewById(R.id.albumImage);
             Picasso.get().load(src).into(albumImage);
             return rootView;
         }

@@ -11,16 +11,25 @@ import android.widget.TextView;
 import com.squareup.picasso.Picasso;
 
 import org.pub.girlview.R;
-import org.pub.girlview.domain.Item;
+import org.pub.girlview.domain.Girl;
 import org.pub.girlview.listener.OnItemClickListener;
 
-public class ItemAdatper extends RecyclerView.Adapter<ItemAdatper.MyViewHolder> {
+import java.util.List;
+
+/**
+ * Gril Adapter
+ */
+public class GirlAdapter extends RecyclerView.Adapter<GirlAdapter.MyViewHolder> {
 
     private OnItemClickListener itemClickListener;
 
-    private Item[] data;
+    private List<Girl> data;
 
-    public ItemAdatper(Item[] data) {
+    public GirlAdapter(List<Girl> data) {
+        this.data = data;
+    }
+
+    public void setData(List<Girl> data) {
         this.data = data;
     }
 
@@ -31,15 +40,16 @@ public class ItemAdatper extends RecyclerView.Adapter<ItemAdatper.MyViewHolder> 
     @NonNull
     @Override
     public MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.girl_item, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.girl_info, parent, false);
         MyViewHolder viewHolder = new MyViewHolder(view);
         return viewHolder;
     }
 
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
-        Picasso.get().load(data[position].getSrc()).into(holder.src);
-        holder.title.setText(data[position].getTitle());
+        Picasso.get().load(data.get(position).getSrc()).into(holder.src);
+        holder.name.setText(data.get(position).getName());
+        holder.desc.setText(data.get(position).getDesc());
 
         if (itemClickListener != null) {
             holder.itemView.setOnClickListener((View view) -> {
@@ -51,21 +61,24 @@ public class ItemAdatper extends RecyclerView.Adapter<ItemAdatper.MyViewHolder> 
 
     @Override
     public int getItemCount() {
-        return data.length;
+        return data.size();
     }
+
 
     /**
      * MyView Holder
      */
     public static class MyViewHolder extends RecyclerView.ViewHolder {
 
-        public TextView title;
         public ImageView src;
+        public TextView name;
+        public TextView desc;
 
         public MyViewHolder(View view) {
             super(view);
-            title = view.findViewById(R.id.title);
             src = view.findViewById(R.id.src);
+            name = view.findViewById(R.id.name);
+            desc = view.findViewById(R.id.desc);
         }
     }
 }

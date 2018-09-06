@@ -40,35 +40,30 @@ public class IndexScanner {
         return doc;
     }
 
-    public static Document getGalleryDoc() {
-        if (galleryDoc == null) {
-            try {
-                IndexScanner.galleryDoc = Jsoup.connect(Constants.BASE_URL + "/gallery/").get();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+    private static Document getGalleryDoc(Integer index) {
+        try {
+            System.err.println(index);
+            IndexScanner.galleryDoc = Jsoup.connect(Constants.BASE_URL + "/gallery/" + index + ".html").get();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         return galleryDoc;
     }
 
-    public static Document getHotestDoc() {
-        if (hotestDoc == null) {
-            try {
-                IndexScanner.hotestDoc = Jsoup.connect(Constants.BASE_URL + "/rank/").get();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+    private static Document getHotestDoc(Integer index) {
+        try {
+            IndexScanner.hotestDoc = Jsoup.connect(Constants.BASE_URL + "/rank/" + index + ".html").get();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         return hotestDoc;
     }
 
-    public static Document getUpdateDoc() {
-        if (updateDoc == null) {
-            try {
-                IndexScanner.updateDoc = Jsoup.connect(Constants.BASE_URL + "/tag/new/").get();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+    private static Document getUpdateDoc(Integer index) {
+        try {
+            IndexScanner.updateDoc = Jsoup.connect(Constants.BASE_URL + "/tag/new/" + index + ".html").get();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         return updateDoc;
     }
@@ -78,9 +73,9 @@ public class IndexScanner {
      *
      * @return
      */
-    public static List<Item> getGalleryItems() {
+    public static List<Item> getGalleryItems(Integer index) {
         List<Item> result = new ArrayList<>();
-        Elements newList = getGalleryDoc().selectFirst("#gallerydiv").select("div.ck-initem");
+        Elements newList = getGalleryDoc(index).selectFirst("#gallerydiv").select("div.ck-initem");
         for (Element ele : newList) {
             String src = ele.selectFirst("mip-img").attr("src");
             String href = ele.selectFirst("a").attr("href");
@@ -96,9 +91,9 @@ public class IndexScanner {
      *
      * @return
      */
-    public static List<Girl> getUpdateGirls() {
+    public static List<Girl> getUpdateGirls(Integer index) {
         List<Girl> result = new ArrayList<>();
-        Elements updateList = getUpdateDoc().selectFirst("#dlist").select("div.ck-initem");
+        Elements updateList = getUpdateDoc(index).selectFirst("#dlist").select("div.ck-initem");
         for (Element ele : updateList) {
             String name = ele.selectFirst("span.ck-title").text();
             String src = ele.selectFirst("img").attr("src");
@@ -111,9 +106,9 @@ public class IndexScanner {
         return result;
     }
 
-    public static List<Girl> getHotestGirls() {
+    public static List<Girl> getHotestGirls(Integer index) {
         List<Girl> result = new ArrayList<>();
-        Elements updateList = getHotestDoc().selectFirst("#dlist").select("div.ck-initem");
+        Elements updateList = getHotestDoc(index).selectFirst("#dlist").select("div.ck-initem");
         for (Element ele : updateList) {
             String name = ele.selectFirst("span.ck-title").text();
             String src = ele.selectFirst("img").attr("src");

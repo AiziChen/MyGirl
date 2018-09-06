@@ -1,11 +1,9 @@
 package org.pub.girlview;
 
-import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.BottomNavigationView;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -14,19 +12,48 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
-import org.pub.girlview.adapter.GirlAdatper;
-import org.pub.girlview.adapter.ItemAdatper;
+import com.aspsine.swipetoloadlayout.SwipeToLoadLayout;
+
+import org.pub.girlview.adapter.GirlAdapter;
+import org.pub.girlview.adapter.ItemAdapter;
 import org.pub.girlview.domain.Girl;
 import org.pub.girlview.domain.Item;
 import org.pub.girlview.scanner.IndexScanner;
 import org.pub.girlview.tools.$;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
     private RecyclerView mRecyclerView;
-    private SwipeRefreshLayout refreshLayout;
+    private SwipeToLoadLayout loadLayout;
+
+    private enum Status {
+        NEWS, HOTEST, UPDATE
+    }
+
+    private Status status = Status.NEWS;
+    private static Integer newsIndex = 1;
+    private static Integer hottestIndex = 1;
+    private static Integer updateIndex = 1;
+    private List<Item> newsItems = new ArrayList<>();
+    private List<Girl> hottestItems = new ArrayList<>();
+    private List<Girl> updateItems = new ArrayList<>();
+    private ItemAdapter newsAdapter;
+    private GirlAdapter hottestAdapter;
+    private GirlAdapter updateAdapter;
+    private boolean newsFirst = true;
+    private boolean updateFirst = true;
+    private boolean hottestFirst = true;
+    private int newsPos = 0;
+    private int updatePos = 0;
+    private int hottestPos = 0;
+
+    private GridLayoutManager layoutManagerNews = new GridLayoutManager(this, 3);
+    private GridLayoutManager layoutManagerHottest = new GridLayoutManager(this, 4);
+    private GridLayoutManager layoutManagerUpdate = new GridLayoutManager(this, 4);
+
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = (MenuItem item) -> {
@@ -34,29 +61,58 @@ public class MainActivity extends AppCompatActivity {
             ProgressDialog.show(this, "无网络连接，请检查然后重试", "", true, true);
             return false;
         }
-        RecyclerView.LayoutManager layoutManager;
         switch (item.getItemId()) {
-            case R.id.navigation_home:
+            case R.id.navigation_news:
                 MainActivity.this.setTitle(R.string.app_name);
-                layoutManager = new GridLayoutManager(this, 3);
-                mRecyclerView.setLayoutManager(layoutManager);
-                new NewestAsyncTask().execute();
+                if (layoutManagerHottest.findFirstVisibleItemPosition() != -1)
+                    hottestPos = layoutManagerHottest.findFirstVisibleItemPosition();
+                if (layoutManagerUpdate.findFirstVisibleItemPosition() != -1)
+                    updatePos = layoutManagerUpdate.findFirstVisibleItemPosition();
+                if (newsFirst) {
+                    asyncNews(1);
+                    newsFirst = false;
+                } else {
+                    mRecyclerView.setLayoutManager(layoutManagerNews);
+                    mRecyclerView.setAdapter(newsAdapter);
+                }
+                mRecyclerView.scrollToPosition(newsPos);
                 return true;
-            case R.id.navigation_dashboard:
+
+            case R.id.navigation_hottest:
                 MainActivity.this.setTitle(R.string.hotest);
-                layoutManager = new GridLayoutManager(this, 4);
-                mRecyclerView.setLayoutManager(layoutManager);
-                new HostestAsyncTask().execute();
+                if (layoutManagerNews.findFirstVisibleItemPosition() != -1)
+                    newsPos = layoutManagerNews.findFirstVisibleItemPosition();
+                if (layoutManagerUpdate.findFirstVisibleItemPosition() != -1)
+                    updatePos = layoutManagerUpdate.findFirstVisibleItemPosition();
+                if (hottestFirst) {
+                    asyncHottest(1);
+                    hottestFirst = false;
+                } else {
+                    mRecyclerView.setLayoutManager(layoutManagerHottest);
+                    mRecyclerView.setAdapter(hottestAdapter);
+                }
+                mRecyclerView.scrollToPosition(hottestPos);
                 return true;
-            case R.id.navigation_notifications:
+
+            case R.id.navigation_update:
                 MainActivity.this.setTitle(R.string.latest);
-                layoutManager = new GridLayoutManager(this, 4);
-                mRecyclerView.setLayoutManager(layoutManager);
-                new UpdateGirlAsyncTask().execute();
+                if (layoutManagerHottest.findFirstVisibleItemPosition() != -1)
+                    hottestPos = layoutManagerHottest.findFirstVisibleItemPosition();
+                if (layoutManagerNews.findFirstVisibleItemPosition() != -1)
+                    newsPos = layoutManagerNews.findFirstVisibleItemPosition();
+                if (updateFirst) {
+                    asyncUpdate(1);
+                    updateFirst = false;
+                } else {
+                    mRecyclerView.setLayoutManager(layoutManagerUpdate);
+                    mRecyclerView.setAdapter(updateAdapter);
+                }
+                mRecyclerView.scrollToPosition(updatePos);
                 return true;
         }
         return false;
     };
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,60 +122,96 @@ public class MainActivity extends AppCompatActivity {
         BottomNavigationView navigation = findViewById(R.id.navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
 
-        refreshLayout = findViewById(R.id.swipe_refresh);
-
-        mRecyclerView = findViewById(R.id.mRecyclerView);
-        mRecyclerView.setHasFixedSize(true);
-        RecyclerView.LayoutManager layoutManager = new GridLayoutManager(this, 3);
-        mRecyclerView.setLayoutManager(layoutManager);
-        mRecyclerView.setRecyclerListener(holder -> {
-        });
-        refreshLayout.setOnRefreshListener(() -> {
-            refreshLayout.setRefreshing(false);
-        });
-
         if (!$.isNetWorkConnected(this)) {
             ProgressDialog.show(this, "无网络连接，请检查然后重试", "", true, true);
             return;
         }
 
-        new NewestAsyncTask().execute();
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("此为开发版本");
-        builder.setNegativeButton("确定", null);
-        builder.show();
+        loadLayout = findViewById(R.id.swipe_refresh);
+        mRecyclerView = findViewById(R.id.swipe_target);
+        mRecyclerView.setHasFixedSize(true);
+
+        initListener();
+        initAdapter();
+
+        asyncNews(1);
+        newsFirst = false;
     }
+
+
+    private void initListener() {
+        loadLayout.setOnRefreshListener(() -> {
+            loadLayout.setRefreshing(false);
+        });
+        loadLayout.setOnLoadMoreListener(() -> {
+            switch (status) {
+                case NEWS:
+                    asyncNews(++newsIndex);
+                    break;
+                case HOTEST:
+                    asyncHottest(++hottestIndex);
+                    break;
+                case UPDATE:
+                    asyncUpdate(++updateIndex);
+                    break;
+            }
+        });
+    }
+
+
+    private void initAdapter() {
+        // News
+        newsAdapter = new ItemAdapter(newsItems);
+        newsAdapter.setOnItemClickListener((View view, int position) -> {
+            new Thread(() -> {
+                AlbumActivity.startAction(MainActivity.this, newsItems.get(position));
+            }).start();
+        });
+
+        // Updates
+        updateAdapter = new GirlAdapter(updateItems);
+        updateAdapter.setOnItemClickListener((View view, int position) -> {
+            new Thread(() -> {
+                DetailActivity.startAction(MainActivity.this, updateItems.get(position));
+            }).start();
+        });
+
+        // Hottest
+        hottestAdapter = new GirlAdapter(hottestItems);
+        hottestAdapter.setOnItemClickListener((View view, int position) -> {
+            new Thread(() -> {
+                DetailActivity.startAction(MainActivity.this, hottestItems.get(position));
+            }).start();
+        });
+    }
+
 
     /**
      * Newest Asynctask
      */
-    private class NewestAsyncTask extends AsyncTask<Void, Void, Item[]> {
+    private class NewestAsyncTask extends AsyncTask<Integer, Void, List<Item>> {
 
         @Override
-        protected Item[] doInBackground(Void... items) {
-            List<Item> item = IndexScanner.getGalleryItems();
-            return item.toArray(new Item[item.size()]);
+        protected List<Item> doInBackground(Integer... items) {
+            return IndexScanner.getGalleryItems(items[0]);
         }
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            refreshLayout.setRefreshing(true);
+            loadLayout.setRefreshing(true);
         }
 
         @Override
-        protected void onPostExecute(Item[] items) {
+        protected void onPostExecute(List<Item> items) {
             super.onPostExecute(items);
-            ItemAdatper adapter = new ItemAdatper(items);
-            adapter.setOnItemClickListener((View view, int position) -> {
-                new Thread(() -> {
-//                    ShowScanner scanner = new ShowScanner(href);
-//                    ArrayList<String> srcs = scanner.getAllImages();
-                    AlbumActivity.startAction(MainActivity.this, items[position]);
-                }).start();
-            });
-            mRecyclerView.setAdapter(adapter);
-            refreshLayout.setRefreshing(false);
+            newsItems.addAll(items);
+            mRecyclerView.setLayoutManager(layoutManagerNews);
+            mRecyclerView.setAdapter(newsAdapter);
+            newsAdapter.notifyDataSetChanged();
+            mRecyclerView.scrollToPosition(newsItems.size() - items.size() - 1);
+            loadLayout.setRefreshing(false);
+            loadLayout.setLoadingMore(false);
         }
     }
 
@@ -127,29 +219,29 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Hostest Asynctask
      */
-    private class HostestAsyncTask extends AsyncTask<Void, Void, Girl[]> {
+    private class HottestAsyncTask extends AsyncTask<Integer, Void, List<Girl>> {
 
         @Override
-        protected Girl[] doInBackground(Void... items) {
-            List<Girl> girls = IndexScanner.getHotestGirls();
-            return girls.toArray(new Girl[girls.size()]);
+        protected List<Girl> doInBackground(Integer... items) {
+            return IndexScanner.getHotestGirls(items[0]);
         }
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            refreshLayout.setRefreshing(true);
+            loadLayout.setRefreshing(true);
         }
 
         @Override
-        protected void onPostExecute(Girl[] items) {
+        protected void onPostExecute(List<Girl> items) {
             super.onPostExecute(items);
-            GirlAdatper adapter = new GirlAdatper(items);
-            adapter.setOnItemClickListener((View view, int position) -> {
-                DetailActivity.startAction(MainActivity.this, items[position]);
-            });
-            mRecyclerView.setAdapter(adapter);
-            refreshLayout.setRefreshing(false);
+            hottestItems.addAll(items);
+            mRecyclerView.setLayoutManager(layoutManagerHottest);
+            mRecyclerView.setAdapter(hottestAdapter);
+            hottestAdapter.notifyDataSetChanged();
+            mRecyclerView.scrollToPosition(hottestItems.size() - items.size() - 1);
+            loadLayout.setRefreshing(false);
+            loadLayout.setLoadingMore(false);
         }
     }
 
@@ -157,31 +249,54 @@ public class MainActivity extends AppCompatActivity {
     /**
      * UpdateGirl Asynctask
      */
-    private class UpdateGirlAsyncTask extends AsyncTask<Void, Void, Girl[]> {
+    private class UpdateGirlAsyncTask extends AsyncTask<Integer, Void, List<Girl>> {
 
         @Override
-        protected Girl[] doInBackground(Void... items) {
-            List<Girl> girls = IndexScanner.getUpdateGirls();
-            return girls.toArray(new Girl[girls.size()]);
+        protected List<Girl> doInBackground(Integer... items) {
+            return IndexScanner.getUpdateGirls(items[0]);
         }
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            refreshLayout.setRefreshing(true);
+            loadLayout.setRefreshing(true);
         }
 
         @Override
-        protected void onPostExecute(Girl[] items) {
+        protected void onPostExecute(List<Girl> items) {
             super.onPostExecute(items);
-            GirlAdatper adapter = new GirlAdatper(items);
-            adapter.setOnItemClickListener((View view, int position) -> {
-                DetailActivity.startAction(MainActivity.this, items[position]);
-            });
-            mRecyclerView.setAdapter(adapter);
-            refreshLayout.setRefreshing(false);
+            updateItems.addAll(items);
+            mRecyclerView.setLayoutManager(layoutManagerUpdate);
+            mRecyclerView.setAdapter(updateAdapter);
+            updateAdapter.notifyDataSetChanged();
+            mRecyclerView.scrollToPosition(updateItems.size() - items.size() - 1);
+            loadLayout.setRefreshing(false);
+            loadLayout.setLoadingMore(false);
         }
     }
+
+
+    private void asyncNews(Integer index) {
+        new NewestAsyncTask().execute(index);
+        status = Status.NEWS;
+    }
+
+    private void asyncUpdate(Integer index) {
+        new UpdateGirlAsyncTask().execute(index);
+        status = Status.UPDATE;
+    }
+
+    private void asyncHottest(Integer index) {
+        new HottestAsyncTask().execute(index);
+        status = Status.HOTEST;
+    }
+
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+    }
+
 
     private static long beforeTime = System.currentTimeMillis();
 
@@ -194,10 +309,5 @@ public class MainActivity extends AppCompatActivity {
             return false;
         }
         return super.onKeyDown(keyCode, event);
-    }
-
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
     }
 }

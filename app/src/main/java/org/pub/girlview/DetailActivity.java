@@ -3,25 +3,22 @@ package org.pub.girlview;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.AsyncTask;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 
-import org.pub.girlview.adapter.ItemAdatper;
+import org.pub.girlview.adapter.ItemAdapter;
 import org.pub.girlview.domain.Girl;
 import org.pub.girlview.domain.GirlDetail;
 import org.pub.girlview.domain.Item;
 import org.pub.girlview.scanner.AlbumScanner;
 import org.pub.girlview.scanner.DetailScanner;
-import org.pub.girlview.scanner.ShowScanner;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class DetailActivity extends AppCompatActivity {
@@ -83,23 +80,23 @@ public class DetailActivity extends AppCompatActivity {
     }
 
 
-    private class AlbumAsyncTask extends AsyncTask<Girl, Void, Item[]> {
+    private class AlbumAsyncTask extends AsyncTask<Girl, Void, List<Item>> {
 
         @Override
-        protected Item[] doInBackground(Girl... girls) {
+        protected List<Item> doInBackground(Girl... girls) {
             AlbumScanner scanner = new AlbumScanner(girls[0].getHref());
             List<Item> items = scanner.getGirlAlbumItems();
-            return items.toArray(new Item[items.size()]);
+            return items;
         }
 
         @Override
-        protected void onPostExecute(Item[] items) {
+        protected void onPostExecute(List<Item> items) {
             super.onPostExecute(items);
-            ItemAdatper adatper = new ItemAdatper(items);
-            rvGirl.setAdapter(adatper);
-            adatper.setOnItemClickListener((view, position) -> {
+            ItemAdapter adapter = new ItemAdapter(items);
+            rvGirl.setAdapter(adapter);
+            adapter.setOnItemClickListener((view, position) -> {
                 new Thread(() -> {
-                    AlbumActivity.startAction(DetailActivity.this, items[position]);
+                    AlbumActivity.startAction(DetailActivity.this, items.get(position));
                 }).start();
             });
         }
