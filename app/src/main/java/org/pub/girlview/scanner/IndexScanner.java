@@ -40,31 +40,18 @@ public class IndexScanner {
         return doc;
     }
 
-    private static Document getGalleryDoc(Integer index) {
-        try {
-            System.err.println(index);
-            IndexScanner.galleryDoc = Jsoup.connect(Constants.BASE_URL + "/gallery/" + index + ".html").get();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    private static Document getGalleryDoc(Integer index) throws IOException {
+        IndexScanner.galleryDoc = Jsoup.connect(Constants.BASE_URL + "/gallery/" + index + ".html").get();
         return galleryDoc;
     }
 
-    private static Document getHotestDoc(Integer index) {
-        try {
-            IndexScanner.hotestDoc = Jsoup.connect(Constants.BASE_URL + "/rank/" + index + ".html").get();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    private static Document getHotestDoc(Integer index) throws IOException {
+        IndexScanner.hotestDoc = Jsoup.connect(Constants.BASE_URL + "/rank/" + index + ".html").get();
         return hotestDoc;
     }
 
-    private static Document getUpdateDoc(Integer index) {
-        try {
-            IndexScanner.updateDoc = Jsoup.connect(Constants.BASE_URL + "/tag/new/" + index + ".html").get();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    private static Document getUpdateDoc(Integer index) throws IOException {
+        IndexScanner.updateDoc = Jsoup.connect(Constants.BASE_URL + "/tag/new/" + index + ".html").get();
         return updateDoc;
     }
 
@@ -73,7 +60,7 @@ public class IndexScanner {
      *
      * @return
      */
-    public static List<Item> getGalleryItems(Integer index) {
+    public static List<Item> getGalleryItems(Integer index) throws IOException {
         List<Item> result = new ArrayList<>();
         Elements newList = getGalleryDoc(index).selectFirst("#gallerydiv").select("div.ck-initem");
         for (Element ele : newList) {
@@ -91,7 +78,7 @@ public class IndexScanner {
      *
      * @return
      */
-    public static List<Girl> getUpdateGirls(Integer index) {
+    public static List<Girl> getUpdateGirls(Integer index) throws IOException {
         List<Girl> result = new ArrayList<>();
         Elements updateList = getUpdateDoc(index).selectFirst("#dlist").select("div.ck-initem");
         for (Element ele : updateList) {
@@ -106,7 +93,7 @@ public class IndexScanner {
         return result;
     }
 
-    public static List<Girl> getHotestGirls(Integer index) {
+    public static List<Girl> getHottestGirls(Integer index) throws IOException {
         List<Girl> result = new ArrayList<>();
         Elements updateList = getHotestDoc(index).selectFirst("#dlist").select("div.ck-initem");
         for (Element ele : updateList) {

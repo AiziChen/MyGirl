@@ -4,6 +4,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.pub.girlview.domain.Girl;
+import org.pub.girlview.tools.Constants;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -20,20 +22,16 @@ public class ShowScanner {
 
     private String href;
 
-    public ShowScanner(String href, Integer index) {
+    public ShowScanner(String href, Integer index) throws IOException {
         this.href = href;
-        try {
-            Document doc = Jsoup.connect(href).get();
-            Element ele = doc.selectFirst("#pagediv").selectFirst("span.page");
-            String text = ele.text();
-            int page = Integer.parseInt(text.substring(text.indexOf('/') + 1));
-            if (index > 0 && index <= page) {
-                ShowScanner.doc = Jsoup.connect(href + index + ".html").get();
-            } else {
-                throw new RuntimeException("page have been out of the total page-index!");
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+        Document doc = Jsoup.connect(href).get();
+        Element ele = doc.selectFirst("#pagediv").selectFirst("span.page");
+        String text = ele.text();
+        int page = Integer.parseInt(text.substring(text.indexOf('/') + 1));
+        if (index > 0 && index <= page) {
+            ShowScanner.doc = Jsoup.connect(href + index + ".html").get();
+        } else {
+            throw new RuntimeException("page have been out of the total page-index!");
         }
     }
 
@@ -76,6 +74,11 @@ public class ShowScanner {
     }
 
 
+    /**
+     * Get all images
+     *
+     * @return
+     */
     public ArrayList<String> getAllImages() {
         ArrayList<String> result = new ArrayList<>();
         for (Document doc : getAllDoc(href)) {
@@ -87,5 +90,22 @@ public class ShowScanner {
         }
 
         return result;
+    }
+
+
+    /**
+     * Get CurrentAlbum Girl
+     *
+     * @return
+     */
+    public Girl getCurrentGirl() {
+        Element ele = doc.selectFirst("#dgirl").selectFirst("div.ck-initem");
+        String name = ele.selectFirst("span.ck-title").text();
+        String src = ele.selectFirst("img").attr("src");
+        String href = ele.select("a").attr("href");
+        href = Constants.BASE_URL + href;
+        String desc = "";
+
+        return new Girl(name, src, href, desc);
     }
 }

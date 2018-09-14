@@ -1,11 +1,8 @@
 <resources>
     <string name="app_name">我的女神</string>
-    <string name="title_home">Home</string>
-    <string name="title_dashboard">Dashboard</string>
-    <string name="title_notifications">Notifications</string>
     <string name="girl_item">女神条目</string>
-    <string name="latest">最新</string>
-    <string name="hotest">最热</string>
+    <string name="new_album">最新</string>
+    <string name="hottest">排行</string>
     <string name="new_girls">新人</string>
     <string name="title_activity_album">详情</string>
     <string name="action_settings">Settings</string>
@@ -16,4 +13,5 @@
     <string name="girl_album">女神相册</string>
     <string name="save">保存</string>
     <string name="empty" />
+    <string name="saving">保存中...</string>
 </resources>

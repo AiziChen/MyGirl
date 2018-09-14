@@ -4,16 +4,16 @@ android {
     compileSdkVersion 27
     defaultConfig {
         applicationId "org.pub.girlview"
-        minSdkVersion 14
+        minSdkVersion 15
         targetSdkVersion 27
-        versionCode 1
-        versionName "1.0"
+        versionCode 2
+        versionName "1.1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         release {
-            minifyEnabled true
             shrinkResources true
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
@@ -38,4 +38,7 @@ dependencies {
     implementation 'org.jetbrains:annotations:15.0'
     implementation 'com.github.chrisbanes.photoview:library:1.2.4'
     implementation 'com.github.Aspsine:SwipeToLoadLayout:1.0.4'
+    implementation 'com.google.android.gms:play-services-ads:15.0.1'
+    implementation 'com.jaeger.statusbarutil:library:1.5.1'
+    implementation 'me.wangyuwei:FlipShare:1.0.2'
 }

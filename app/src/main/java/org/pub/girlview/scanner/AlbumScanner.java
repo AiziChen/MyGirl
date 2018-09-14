@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * ��ǰhref�µ�album(��ͼ���)
+ * 获取女神相册
  *
  * @author Quanyec
  */
@@ -36,7 +36,7 @@ public class AlbumScanner {
     }
 
     /**
-     * ��ȡ���е���ͼ���
+     * 获取所有的女神相册
      */
     public List<Item> getGirlAlbumItems() {
         List<Item> result = new ArrayList<>();
@@ -52,4 +52,5 @@ public class AlbumScanner {
 
         return result;
     }
+    
 }

@@ -3,8 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="org.pub.girlview.AlbumActivity">
     <item
-        android:id="@+id/menu_saveImage"
+        android:id="@+id/menu_girl_info"
         android:orderInCategory="100"
-        android:title="@string/save"
-        app:showAsAction="never" />
+        android:title="@string/girl_info"
+        app:showAsAction="ifRoom"
+        android:icon="@drawable/ic_info_outline_black_24dp"/>
 </menu>

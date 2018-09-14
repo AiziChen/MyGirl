@@ -13,6 +13,7 @@ import android.widget.TextView;
 import com.squareup.picasso.Picasso;
 
 import org.pub.girlview.adapter.ItemAdapter;
+import org.pub.girlview.base.BaseActivity;
 import org.pub.girlview.domain.Girl;
 import org.pub.girlview.domain.GirlDetail;
 import org.pub.girlview.domain.Item;
@@ -21,7 +22,7 @@ import org.pub.girlview.scanner.DetailScanner;
 
 import java.util.List;
 
-public class DetailActivity extends AppCompatActivity {
+public class DetailActivity extends BaseActivity {
 
     private static final String GIRL_DETAIL = "girl_detail";
 
@@ -36,7 +37,6 @@ public class DetailActivity extends AppCompatActivity {
     private TextView tvGirlName;
     private TextView tvGirlInfo;
     private RecyclerView rvGirl;
-    private Girl[] grils;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,8 +85,7 @@ public class DetailActivity extends AppCompatActivity {
         @Override
         protected List<Item> doInBackground(Girl... girls) {
             AlbumScanner scanner = new AlbumScanner(girls[0].getHref());
-            List<Item> items = scanner.getGirlAlbumItems();
-            return items;
+            return scanner.getGirlAlbumItems();
         }
 
         @Override
