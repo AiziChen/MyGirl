@@ -2,20 +2,21 @@ package org.pub.girlview;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.app.SearchManager;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.BottomNavigationView;
-import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.view.KeyEvent;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
 import com.aspsine.swipetoloadlayout.SwipeToLoadLayout;
-import com.google.android.gms.ads.MobileAds;
 
 import org.pub.girlview.adapter.GirlAdapter;
 import org.pub.girlview.adapter.ItemAdapter;
@@ -262,6 +263,8 @@ public class MainActivity extends BaseActivity {
             super.onPostExecute(items);
             if (items == null) {
                 showServerUnUsedDialog();
+                loadLayout.setRefreshing(false);
+                loadLayout.setLoadingMore(false);
                 return;
             }
             newsItems.addAll(items);
@@ -294,6 +297,8 @@ public class MainActivity extends BaseActivity {
             super.onPostExecute(items);
             if (items == null) {
                 showServerUnUsedDialog();
+                loadLayout.setRefreshing(false);
+                loadLayout.setLoadingMore(false);
                 return;
             }
             hottestItems.addAll(items);
@@ -326,6 +331,8 @@ public class MainActivity extends BaseActivity {
             super.onPostExecute(items);
             if (items == null) {
                 showServerUnUsedDialog();
+                loadLayout.setRefreshing(false);
+                loadLayout.setLoadingMore(false);
                 return;
             }
             updateItems.addAll(items);
@@ -380,5 +387,15 @@ public class MainActivity extends BaseActivity {
             return false;
         }
         return super.onKeyDown(keyCode, event);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_action_bar_search, menu);
+        SearchManager manager = (SearchManager) getSystemService(SEARCH_SERVICE);
+        SearchView view = (SearchView) menu.findItem(R.id.ab_search).getActionView();
+        view.setSearchableInfo(manager.getSearchableInfo(getComponentName()));
+
+        return super.onCreateOptionsMenu(menu);
     }
 }

@@ -14,4 +14,8 @@
     <string name="save">保存</string>
     <string name="empty" />
     <string name="saving">保存中...</string>
+    <string name="search_result">搜索结果</string>
+    <string name="search_no_result">无搜索结果</string>
+    <string name="comment_list">评论列表</string>
+    <string name="show_comment">查看评论</string>
 </resources>

@@ -1,25 +1,34 @@
 package org.pub.girlview;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
 import org.pub.girlview.adapter.ItemAdapter;
 import org.pub.girlview.base.BaseActivity;
+import org.pub.girlview.domain.Gesture;
 import org.pub.girlview.domain.Girl;
 import org.pub.girlview.domain.GirlDetail;
 import org.pub.girlview.domain.Item;
 import org.pub.girlview.scanner.AlbumScanner;
 import org.pub.girlview.scanner.DetailScanner;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class DetailActivity extends BaseActivity {
@@ -101,4 +110,39 @@ public class DetailActivity extends BaseActivity {
         }
     }
 
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_detail, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.menu_comment) {
+            new Thread(() -> {
+                Looper.prepare();
+                new ShowCommentsHandler().sendEmptyMessage(0x000);
+                Looper.loop();
+            }).start();
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+
+    /**
+     * 显示评论的Handler
+     */
+    private class ShowCommentsHandler extends Handler {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            ProgressDialog dialog = ProgressDialog.show(DetailActivity.this, "", getString(R.string.loading), true, true);
+            dialog.show();
+            DetailScanner ds = new DetailScanner(girl.getHref() + "message/");
+            ArrayList<Gesture> gs = ds.getComments();
+            dialog.dismiss();
+            CommentActivity.startAction(DetailActivity.this, gs);
+        }
+    }
 }
